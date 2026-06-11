@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deeptraffic"
+version = "1.0.0"
+description = "Faithful headless Python port of the MIT DeepTraffic v2.0 simulation, validated against the original JavaScript engine."
+requires-python = ">=3.10"
+dependencies = ["numpy<2.3"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

@@ -1,0 +1,15 @@
+{
+  "name": "deeptraffic-node-ref",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Headless Node reference harness that loads the ORIGINAL gameopt.js (the full DeepTraffic v2.0 simulation) to produce ground-truth scores and per-frame trajectory dumps for validating the Python port. Uses only Node built-ins (fs, path, vm) -- no npm dependencies.",
+  "main": "run_ref.js",
+  "scripts": {
+    "eval:nop": "node run_ref.js eval --policy=nop --runs=500 --frames=2000 --det=true",
+    "eval:accel": "node run_ref.js eval --policy=accel --runs=500 --frames=2000 --det=true",
+    "eval:brain": "node run_ref.js eval --policy=brain --runs=500 --frames=2000 --det=true"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

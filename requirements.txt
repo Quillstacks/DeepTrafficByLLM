@@ -1,0 +1,17 @@
+# Pinned, mutually-compatible versions for the DeepTraffic Python port.
+# numpy < 2.3 avoids the ABI break that anaconda's numpy 2.4.x causes with
+# prebuilt matplotlib / pandas / torch wheels. CPU-only torch.
+#
+# Install into a CLEAN venv (NOT base anaconda):
+#   /Users/markschutera/anaconda3/bin/python3 -m venv .venv
+#   .venv/bin/python -m pip install --upgrade pip
+#   .venv/bin/python -m pip install -r requirements.txt
+#
+# torch CPU wheels: if the default index is slow, use
+#   --index-url https://download.pytorch.org/whl/cpu
+numpy==2.2.6
+torch==2.5.1
+matplotlib==3.9.4
+pandas==2.2.3
+pytest==8.3.4
+tqdm==4.67.1
