@@ -1,5 +1,5 @@
-import sys, statistics
-sys.path.insert(0, "/Users/markschutera/Documents/Prof/Research/MITDeepDrive/src")
+import os, sys, statistics
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
 from deeptraffic.env import DeepTrafficEnv
 from deeptraffic.llm.heuristic import make_policy_cfg
 env = DeepTrafficEnv(lanes_side=3, patches_ahead=40, patches_behind=5, other_agents=10)

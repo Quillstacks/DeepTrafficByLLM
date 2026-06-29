@@ -1,0 +1,75 @@
+{
+  "name": "diag_template",
+  "objective": "median",
+  "iterations": 1,
+  "runs_per_iter": 6,
+  "heuristic_ids": [
+    "accelerate_when_clear",
+    "fast_or_far_not_blocking",
+    "overtake_when_blocked",
+    "pick_faster_side",
+    "avoid_slow_close_lane",
+    "wait_if_boxed_in",
+    "rear_safety",
+    "ignore_rear_when_not_overtaking",
+    "prefer_centre_on_tie",
+    "spread_to_outer_when_clear"
+  ],
+  "median_trajectory": [
+    74.64
+  ],
+  "mean_trajectory": [
+    74.073
+  ],
+  "objective_trajectory": [
+    74.64
+  ],
+  "best_iteration": 0,
+  "best_median": 74.64,
+  "best_mean": 74.073,
+  "best_order": [
+    "accelerate_when_clear",
+    "overtake_when_blocked",
+    "fast_or_far_not_blocking",
+    "pick_faster_side",
+    "avoid_slow_close_lane",
+    "wait_if_boxed_in",
+    "ignore_rear_when_not_overtaking",
+    "rear_safety",
+    "prefer_centre_on_tie",
+    "spread_to_outer_when_clear"
+  ],
+  "best_weights": {
+    "accelerate_when_clear": 0.1468,
+    "fast_or_far_not_blocking": 0.1284,
+    "overtake_when_blocked": 0.1376,
+    "pick_faster_side": 0.1193,
+    "avoid_slow_close_lane": 0.1193,
+    "wait_if_boxed_in": 0.0917,
+    "rear_safety": 0.0826,
+    "ignore_rear_when_not_overtaking": 0.0917,
+    "prefer_centre_on_tie": 0.055,
+    "spread_to_outer_when_clear": 0.0275
+  },
+  "best_system_prompt": "You drive ONE car on a 7-lane highway; your score is your AVERAGE SPEED (top speed 80 mph). You auto-drive as fast as the road right ahead allows. Follow these driving rules:\n- (ALWAYS) Your DEFAULT action is to ACCELERATE: whenever your lane is open or the car ahead is fast, accelerate and stay in your lane -- never just maintain, because maintaining wastes the speed you could be regaining.\n- (ALWAYS) When a SLOW car is close ahead in your lane you are stuck at its speed and accelerating is useless, so you MUST change to an adjacent lane to overtake instead of staying behind it.\n- (ALWAYS) A car ahead that is near top speed or far away does NOT block you -- you could not go faster anyway, so do not slow down, maintain, or change lanes for it; keep accelerating.\n- (Important) When overtaking, move to the side lane that is open, or whose nearest car is faster or farther ahead than the car blocking you -- pick the genuinely faster side.\n- (Important) NEVER move into a lane that itself has a slow car close ahead -- that is not a real escape, it only trades one block for another.\n- (Important) If you are blocked and neither side lane is genuinely better, ease off briefly and wait for a gap rather than forcing a bad lane change.\n- (Important) When you are not overtaking, ignore the cars behind you completely and never move aside for them.\n- (Important) Do not change into a lane where a fast car is close behind you; you would cut it off and lose speed.\n- (Also) When two side lanes are equally good for overtaking, prefer the one toward the centre of the road.\nThink in one short sentence, then choose one action.",
+  "final_weight_contributions": null,
+  "final_order_contributions": null,
+  "action_fraction_trajectory": [
+    {
+      "maintain": 0.1814,
+      "accelerate": 0.417,
+      "decelerate": 0.0355,
+      "left": 0.1639,
+      "right": 0.2021
+    }
+  ],
+  "total_llm_calls": 3055,
+  "total_parse_fail": 5,
+  "wall_seconds": 4734,
+  "ceiling_ref": {
+    "all_time": 76.3,
+    "best_heuristic_H6": 76.4,
+    "hand_tuned_P4_24run": 76.5,
+    "real_DQN": 74.13
+  }
+}

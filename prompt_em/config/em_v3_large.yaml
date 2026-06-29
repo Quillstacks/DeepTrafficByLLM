@@ -1,0 +1,14 @@
+# EM v3: the LARGE configuration space (16 heuristics) -- thorough search now that
+# template mode is proven stable. More iterations + cold-start rounds for
+# identifiability over 16 dimensions. Best validated at 2000 frames afterwards.
+experiment: {name: em_v3_large, iterations: 16, runs_per_iter: 10, frames: 1000}
+objective: median
+policy: {model: qwen2.5:3b, num_predict: 96}
+synthesis:
+  mode: template
+  model: qwen2.5:3b
+  temperature: 0.0
+  drop_below: 0.04
+  freedom: {start: 0.0, end: 0.0, ramp_after: 99, ramp_span: 1, freeze_structure: 9, candidates: 1}
+optimizer: {alpha: 0.35, ridge_lambda: 1.0, explore_std: 0.13, explore_decay: 0.8, cold_start_rounds: 8, seed: 20260623}
+engine: {lanes_side: 3, patches_ahead: 40, patches_behind: 5, other_agents: 10}

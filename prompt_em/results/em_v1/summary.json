@@ -1,0 +1,167 @@
+{
+  "name": "em_v1",
+  "objective": "median",
+  "iterations": 8,
+  "runs_per_iter": 10,
+  "heuristic_ids": [
+    "accelerate_when_clear",
+    "fast_or_far_not_blocking",
+    "overtake_when_blocked",
+    "pick_faster_side",
+    "avoid_slow_close_lane",
+    "wait_if_boxed_in",
+    "rear_safety",
+    "ignore_rear_when_not_overtaking",
+    "prefer_centre_on_tie",
+    "spread_to_outer_when_clear"
+  ],
+  "median_trajectory": [
+    68.64,
+    39.75,
+    73.61,
+    67.64,
+    61.74,
+    63.59,
+    66.97,
+    53.53
+  ],
+  "mean_trajectory": [
+    66.991,
+    35.909,
+    73.064,
+    67.513,
+    61.672,
+    63.625,
+    64.729,
+    51.777
+  ],
+  "objective_trajectory": [
+    68.64,
+    39.75,
+    73.61,
+    67.64,
+    61.74,
+    63.59,
+    66.97,
+    53.53
+  ],
+  "best_iteration": 2,
+  "best_median": 73.61,
+  "best_mean": 73.064,
+  "best_order": [
+    "spread_to_outer_when_clear",
+    "avoid_slow_close_lane",
+    "overtake_when_blocked",
+    "ignore_rear_when_not_overtaking",
+    "prefer_centre_on_tie",
+    "wait_if_boxed_in",
+    "accelerate_when_clear",
+    "pick_faster_side",
+    "rear_safety",
+    "fast_or_far_not_blocking"
+  ],
+  "best_weights": {
+    "accelerate_when_clear": 0.118,
+    "fast_or_far_not_blocking": 0.1,
+    "overtake_when_blocked": 0.0002,
+    "pick_faster_side": 0.0484,
+    "avoid_slow_close_lane": 0.2369,
+    "wait_if_boxed_in": 0.2279,
+    "rear_safety": 0.0281,
+    "ignore_rear_when_not_overtaking": 0.061,
+    "prefer_centre_on_tie": 0.0837,
+    "spread_to_outer_when_clear": 0.0958
+  },
+  "best_system_prompt": "You drive ONE car on a 7-lane highway; your score is your AVERAGE SPEED (top speed 80 mph). You auto-drive as fast as the road right ahead allows. Follow these driving rules:\nWhen driving, prioritize spreading out in clear outer lanes to keep inner lanes free for passing (rule 1). Avoid moving into a lane with a slow car ahead as it's not an escape route (rule 2). If you're not overtaking and behind cars, stay put rather than changing lanes unnecessarily (rule 3). When choosing between side lanes, opt for the one closer to the center of the road if they are equally good for passing (rule 4). In situations where you're blocked, wait patiently in your lane or move aside only when a better option is available (rule 5). Accelerate and stay in your current lane if it's open or if the car ahead is fast (rule 6). When overtaking, choose the side lane that offers more space or has a faster or farther-ahead car nearby (rule 7). Finally, don't slow down or change lanes just because a car ahead is moving at top speed or far away as this won\u2019t help you (rule 8).\nThink in one short sentence, then choose one action.",
+  "final_weight_contributions": {
+    "accelerate_when_clear": 0.9442,
+    "fast_or_far_not_blocking": 1.0033,
+    "overtake_when_blocked": -5.9216,
+    "pick_faster_side": 1.6391,
+    "avoid_slow_close_lane": 3.3576,
+    "wait_if_boxed_in": 1.2298,
+    "rear_safety": 0.9493,
+    "ignore_rear_when_not_overtaking": -1.9609,
+    "prefer_centre_on_tie": 1.549,
+    "spread_to_outer_when_clear": -2.7899
+  },
+  "final_order_contributions": {
+    "accelerate_when_clear": -1.3609,
+    "fast_or_far_not_blocking": -1.2617,
+    "overtake_when_blocked": 1.6453,
+    "pick_faster_side": -2.2023,
+    "avoid_slow_close_lane": -0.3746,
+    "wait_if_boxed_in": 2.8461,
+    "rear_safety": -1.0824,
+    "ignore_rear_when_not_overtaking": -1.9262,
+    "prefer_centre_on_tie": 2.6164,
+    "spread_to_outer_when_clear": 1.1003
+  },
+  "action_fraction_trajectory": [
+    {
+      "maintain": 0.6603,
+      "accelerate": 0.0582,
+      "decelerate": 0.03,
+      "left": 0.1472,
+      "right": 0.1043
+    },
+    {
+      "maintain": 0.6652,
+      "accelerate": 0.0003,
+      "decelerate": 0.1591,
+      "left": 0.0904,
+      "right": 0.085
+    },
+    {
+      "maintain": 0.4658,
+      "accelerate": 0.4681,
+      "decelerate": 0.0006,
+      "left": 0.0279,
+      "right": 0.0376
+    },
+    {
+      "maintain": 0.3477,
+      "accelerate": 0.0261,
+      "decelerate": 0.0094,
+      "left": 0.3381,
+      "right": 0.2787
+    },
+    {
+      "maintain": 0.9294,
+      "accelerate": 0.0628,
+      "decelerate": 0.0,
+      "left": 0.0021,
+      "right": 0.0057
+    },
+    {
+      "maintain": 0.9087,
+      "accelerate": 0.0202,
+      "decelerate": 0.0,
+      "left": 0.0507,
+      "right": 0.0204
+    },
+    {
+      "maintain": 0.7487,
+      "accelerate": 0.0649,
+      "decelerate": 0.0471,
+      "left": 0.0727,
+      "right": 0.0666
+    },
+    {
+      "maintain": 0.888,
+      "accelerate": 0.0117,
+      "decelerate": 0.0868,
+      "left": 0.0099,
+      "right": 0.0036
+    }
+  ],
+  "total_llm_calls": 40190,
+  "total_parse_fail": 1,
+  "wall_seconds": 54108,
+  "ceiling_ref": {
+    "all_time": 76.3,
+    "best_heuristic_H6": 76.4,
+    "hand_tuned_P4_24run": 76.5,
+    "real_DQN": 74.13
+  }
+}

@@ -1,0 +1,149 @@
+# The atomic driving heuristics that the EM loop blends into a prompt.
+#
+# Each heuristic is ONE self-contained driving rule, written so it can be dropped
+# into a system-prompt 1-to-1 (no LLM needed to turn a single heuristic into
+# prose). The optimizer assigns each a WEIGHT; the synthesizer then writes one
+# coherent prompt that emphasises high-weight heuristics and downplays/omits
+# low-weight ones. We deliberately include a few heuristics of uncertain or even
+# negative value (e.g. fleet-spreading, courtesy) so the regression-EM can
+# discover their weight from the objective rather than us pre-judging them.
+#
+# Fields:
+#   id          : short stable key (used in logs / weight vectors)
+#   text        : the 1-to-1 prose form of the rule
+#   init_weight : prior emphasis weight (optimizer renormalises; higher = the
+#                 optimizer starts the cold-start near this region)
+#   init_order  : prior ORDER priority (higher = stated earlier in the prompt;
+#                 optional, defaults to init_weight). The optimizer searches
+#                 order independently of emphasis from here.
+#   tag         : grouping for readability (speed | overtake | safety | fleet)
+#
+# PRIORS below are seeded from what hand-tuning found (see ../experiment.md):
+# the core speed/overtake rules dominate; rear-safety and fleet-spreading are
+# weak or (for outward drift) actively harmful, so they start low. The optimizer
+# can still move any of them -- these only set the cold-start region.
+
+# The `text` fields carry the PROVEN forceful wording distilled from the
+# hand-tuned P4/P8 prompts (../experiment.md), so a faithful template (or LLM)
+# synthesis reproduces a strong prompt without relying on a small synthesizer to
+# invent good phrasing. The optimizer then tunes WHICH rules, how strongly, and
+# in what ORDER -- not the wording (that is baked in here).
+
+heuristics:
+  - id: accelerate_when_clear
+    tag: speed
+    init_weight: 1.6
+    text: >-
+      Your DEFAULT action is to ACCELERATE: whenever your lane is open or the car
+      ahead is fast, accelerate and stay in your lane -- never just maintain,
+      because maintaining wastes the speed you could be regaining.
+
+  - id: fast_or_far_not_blocking
+    tag: speed
+    init_weight: 1.4
+    text: >-
+      A car ahead that is near top speed or far away does NOT block you -- you
+      could not go faster anyway, so do not slow down, maintain, or change lanes
+      for it; keep accelerating.
+
+  - id: overtake_when_blocked
+    tag: overtake
+    init_weight: 1.5
+    text: >-
+      When a SLOW car is close ahead in your lane you are stuck at its speed and
+      accelerating is useless, so you MUST change to an adjacent lane to overtake
+      instead of staying behind it.
+
+  - id: pick_faster_side
+    tag: overtake
+    init_weight: 1.3
+    text: >-
+      When overtaking, move to the side lane that is open, or whose nearest car
+      is faster or farther ahead than the car blocking you -- pick the genuinely
+      faster side.
+
+  - id: avoid_slow_close_lane
+    tag: overtake
+    init_weight: 1.3
+    text: >-
+      NEVER move into a lane that itself has a slow car close ahead -- that is
+      not a real escape, it only trades one block for another.
+
+  - id: wait_if_boxed_in
+    tag: overtake
+    init_weight: 1.0
+    text: >-
+      If you are blocked and neither side lane is genuinely better, ease off
+      briefly and wait for a gap rather than forcing a bad lane change.
+
+  - id: rear_safety
+    tag: safety
+    init_weight: 0.9
+    text: >-
+      Do not change into a lane where a fast car is close behind you; you would
+      cut it off and lose speed.
+
+  - id: ignore_rear_when_not_overtaking
+    tag: safety
+    init_weight: 1.0
+    text: >-
+      When you are not overtaking, ignore the cars behind you completely and
+      never move aside for them.
+
+  - id: prefer_centre_on_tie
+    tag: fleet
+    init_weight: 0.6
+    text: >-
+      When two side lanes are equally good for overtaking, prefer the one toward
+      the centre of the road.
+
+  - id: spread_to_outer_when_clear
+    tag: fleet
+    init_weight: 0.3
+    text: >-
+      When you are not blocked you may drift toward an open outer lane so the
+      fleet spreads out, but only if it does not cost you any speed.
+
+  # --- larger configuration space: variants + situational + likely-neutral/
+  # harmful rules, so the optimizer SORTS them rather than us pre-judging. ---
+
+  - id: top_speed_when_open
+    tag: speed
+    init_weight: 1.2
+    text: >-
+      When the road far ahead in your lane is clear, accelerate all the way to
+      top speed -- an empty lane is the fastest lane, so do not hold back.
+
+  - id: overtake_early
+    tag: overtake
+    init_weight: 1.0
+    text: >-
+      Begin overtaking as soon as a slow car is close ahead; do not wait until
+      you are right behind it, by which time the adjacent lane may have filled.
+
+  - id: best_of_blocked
+    tag: overtake
+    init_weight: 0.8
+    text: >-
+      If every lane has a slow car close ahead, move toward the lane whose
+      nearest car is the fastest -- take the least-bad option rather than staying
+      stuck behind the slowest.
+
+  - id: commit_after_change
+    tag: safety
+    init_weight: 0.7
+    text: >-
+      Right after you change lanes, accelerate and hold the new lane; do not
+      immediately change again or oscillate between lanes.
+
+  - id: keep_following_gap
+    tag: safety
+    init_weight: 0.5
+    text: >-
+      Keep a small following gap and do not tailgate the car directly ahead.
+
+  - id: avoid_edge_lanes
+    tag: fleet
+    init_weight: 0.4
+    text: >-
+      Avoid the outermost lanes (1 and 7) when an inner lane is equally open.

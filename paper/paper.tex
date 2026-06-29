@@ -1,0 +1,150 @@
+% Heuristic-Guided Prompt Engineering -- NeurIPS-style extended abstract (1 page).
+%
+% Self-contained: compiles with a standard LaTeX install (pdflatex paper.tex);
+% it does NOT depend on neurips_2024.sty. This is a non-anonymous extended
+% abstract; for a double-blind track, replace the author block with
+% "Anonymous Author(s)" and use the venue's submission (line-numbered) style.
+\documentclass[10pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{1.2ex}{0.6ex}
+\titlespacing*{\paragraph}{0pt}{0.6ex}{1em}
+\setlength{\parskip}{0.15em}
+\pagestyle{empty}
+
+\title{\vspace{-3.5em}\textbf{Prompts that Learn: Heuristic-Guided Prompt
+Engineering\\ via Expectation Maximization in LLM Workflows}}
+\author{Mark Schutera\\\texttt{mark.schutera@mailbox.org}}
+\date{}
+
+\begin{document}
+\maketitle\vspace{-2.2em}
+
+\begin{abstract}
+\noindent
+We ask whether a \emph{small} (3B-parameter) local LLM, used as the per-car
+driving policy with \emph{all} knowledge in the prompt, can match crowd-sourced
+deep RL on MIT DeepTraffic. On a frame-exact re-implementation of the benchmark
+(11-car, official $500\!\times\!2000$ deterministic protocol; score $=$ median
+fleet mph), a prompt-only \texttt{qwen2.5:3b} policy reaches a 24-run median of
+\textbf{76.5\,mph} (point estimate; expected median ${\sim}76.4$, $P({>}76.3)
+{=}0.85$), with a mean (76.13) matching the best hand-tuned heuristic's 500-run
+mean (76.12) and exceeding the top real DQN submission (74.13) by ${\sim}2.4$\,mph.
+We then formalize the systematic \emph{manual} tuning that achieved this as
+\textbf{prompt-EM}: a regression/EM loop that co-optimizes the \emph{weighting}
+and the \emph{ordering} of a small set of human-written driving heuristics, which
+an LLM synthesizes into one prompt, scored each round by the simulator's median
+speed as a closed-loop feedback signal. Run at scale over 16 heuristics, prompt-EM recovers a strong
+prompt automatically (proxy median 75.9, well above random search), the residual
+gap to hand-tuning being prompt \emph{wording}. We release the suite with full
+provenance and per-iteration logging so that heuristic importance and
+\emph{sequence} importance can be analyzed.
+\end{abstract}
+\vspace{-0.6em}
+
+\section{Setup}
+DeepTraffic scores the median, over many deterministic episodes, of the average
+speed of a fleet of identical agents weaving through slower traffic. Our engine
+reproduces the original JavaScript bit-for-bit (18/18 fidelity tests pass; max
+per-frame deviation $0.0$, single- and multi-agent). Reference points on this
+engine: do-nothing floor ${\sim}60$; best real trained-DQN submission
+\textbf{74.13}; archived leaderboard \#1 \textbf{75.66}; published all-time
+ceiling \textbf{76.3}. The repo's prior-best heuristic sits \emph{below} this
+ceiling (expected median 76.17); a new hand-coded convention sweep gives an
+expected median of \textbf{76.40} ($5$\,SE above 76.3 over ten independent
+500-run blocks), the first policy here to clear it. A second, more aggressive
+sweep finds \emph{no} configuration above ${\sim}76.5$, so $76.3$ sits near the
+engine's practical optimum for \emph{any} policy.
+
+\section{A small LLM at the ceiling}
+The policy receives a \emph{semantic rendering} of the exact observation the DQN
+sees (per-lane ``open / fast-far / slow-close'' plus an explicit rear status) and
+a short prose driving convention; it reasons one sentence and emits one of five
+actions. At temperature $0$ it is a deterministic function of the prompt, so an
+exact-text cache is decision-identical to querying every step (verified: pure
+uncached runs reproduce cached scores exactly). The tuned prompt reaches a
+\textbf{24-run median of 76.50} (mean 76.13, matching the heuristic's 500-run mean
+76.12); a bootstrap places $P(\mathrm{median}>76.3)\approx0.85$. Three findings
+drove this from a 72.3 naive baseline: (i) a 3B model follows a \emph{prose}
+convention but fails numbered numeric rule-lists; (ii) agreement with the
+heuristic oracle does \emph{not} track score---\emph{blocked-state} decision
+quality does; (iii) small wording and \emph{ordering} changes swing several mph,
+because the model anchors on whichever rule is stated first/most forcefully.
+
+\section{Prompt-EM}
+We systematize this. Let $h_{1{:}K}$ be atomic heuristics, each a
+one-sentence rule. A genome carries two simplex vectors: emphasis $\alpha$ (which
+rules, how strongly) and priority $\rho$ (their order). Each iteration: (1) an LLM
+\textbf{synthesizes} one system prompt that states the heuristics in
+$\rho$-order, stressing high-$\alpha$ ones (a deterministic template is the
+fallback); (2) \textbf{evaluate} over 10 runs $\rightarrow$ median; (3)
+\textbf{E-step}: ridge-regress the objective on past $\alpha$ (and on $\rho$) to
+estimate each heuristic's marginal contribution and its order-contribution;
+(4) \textbf{M-step}: $\alpha\!\leftarrow\!(1{-}\eta)\,\alpha_{\text{best}}+\eta\,
+r(\alpha)$, moving toward the positive-contribution \emph{mixture} (not the single
+best rule), with learning rate $\eta$ and annealed exploration. A Latin-hypercube
+cold start makes the otherwise-collinear regression identifiable (synthetic tests
+recover the true helpful/harmful rules in ${\sim}12$ iterations). Single
+heuristics map to prose \emph{1-to-1} (no LLM); only the weighted \emph{blend}
+uses LLM synthesis. The state renderer is held fixed---we optimize the rules, not
+the encoding.
+
+\paragraph{Prompt-EM in practice.}
+A 3B model is a high-variance \emph{synthesizer}: free-form LLM synthesis of the
+blended prompt collapses the policy into a passive ``maintain'' mode (40--74 mph)
+because it fails to reliably state the dominant ``accelerate-by-default'' rule.
+Baking the proven wording into the heuristics and using the deterministic
+template removes this variance (stable 74.6). The EM cold start then doubles as
+an \emph{automatic ablation}: zeroing the accelerate rule's weight collapses the
+fleet to 45 mph, cleanly marking it the dominant heuristic. Over $K{=}16$
+heuristics the exploit phase reaches a 1000-frame-proxy median of \textbf{75.9}
+(mean 75.0 vs.\ 72.9 for the random Latin-hypercube cold-start samples): at this
+budget the loop's gain over random search is \emph{reliability}---it concentrates
+in the good region---rather than a higher peak.
+
+\paragraph{Positioning.}
+Prompt-EM is black-box prompt optimization (cf.\ APE~\cite{ape}, OPRO~\cite{opro},
+EvoPrompt~\cite{evoprompt}, Promptbreeder~\cite{promptbreeder},
+APO/ProTeGi~\cite{apo}, TextGrad~\cite{textgrad}, DSPy~\cite{dspy}) applied to an
+LLM-as-driving-policy (cf.\ DiLu~\cite{dilu}, GPT-Driver~\cite{gptdriver},
+LanguageMPC~\cite{languagempc}). Its distinguishing combination is an
+\emph{interpretable} search space---a weight-and-order simplex over human
+heuristics, not free-form or soft-prompt text---updated by a \emph{regression/EM}
+credit assignment that reports \emph{which} rules and \emph{which positions} the
+loop's feedback favors; instruction-order credit is absent from prior black-box
+prompt optimizers, and the objective is closed-loop multi-agent control.
+
+\section{Limitations}
+The margin over 76.3 is necessarily thin (the engine ceiling is ${\sim}76.5$) and
+our 24-run significance is suggestive (85\%), not yet 95\%. Credit assignment over
+$K$ heuristics from few in-loop evaluations is sample-limited, and emphasis and
+order confound under joint search. The automated loop reaches the mid-75s without
+any manual wordsmithing but does not yet match the hand-tuned 76.5: the residual
+gap is prompt \emph{wording}, which neither the weight nor the order channel
+reaches. Closing it---a staged synthesizer \emph{freedom} that explores wording
+around a frozen best structure---and isolating sequence importance with a
+dedicated order-only run are immediate future work; both are implemented as ready
+hooks. All runs ship with a full reproducibility manifest and per-iteration logs
+(weights, order, action distributions, contributions).
+
+{\small
+\begin{thebibliography}{99}
+\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+\bibitem{ape} Zhou et al. Large Language Models Are Human-Level Prompt Engineers (APE). arXiv:2211.01910, 2022.
+\bibitem{opro} Yang et al. Large Language Models as Optimizers (OPRO). arXiv:2309.03409, 2023.
+\bibitem{evoprompt} Guo et al. EvoPrompt. arXiv:2309.08532, 2023.
+\bibitem{promptbreeder} Fernando et al. Promptbreeder. arXiv:2309.16797, 2023.
+\bibitem{apo} Pryzant et al. Automatic Prompt Optimization (APO/ProTeGi). arXiv:2305.03495, 2023.
+\bibitem{textgrad} Yuksekgonul et al. TextGrad. arXiv:2406.07496, 2024.
+\bibitem{dspy} Khattab et al. DSPy. arXiv:2310.03714, 2023.
+\bibitem{dilu} Wen et al. DiLu. arXiv:2309.16292, 2023.
+\bibitem{gptdriver} Mao et al. GPT-Driver. arXiv:2310.01415, 2023.
+\bibitem{languagempc} Sha et al. LanguageMPC. arXiv:2310.03026, 2023.
+\end{thebibliography}
+}
+
+\end{document}

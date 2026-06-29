@@ -1,0 +1,47 @@
+# Real EM experiment v2: reliable TEMPLATE synthesis over the upgraded (P4-worded)
+# heuristics. Removes the 3B-synthesizer variance that sank em_v1; the optimizer
+# tunes emphasis + order over already-strong sentences.
+#
+# Tractability: the loop uses a 1000-frame PROXY objective (~1 h/iter) to rank
+# prompts; the best prompt is then validated at the full 2000-frame protocol
+# separately (scripts: prompt_em.cli or a dedicated validation run).
+
+experiment:
+  name: em_v2_template
+  iterations: 8
+  runs_per_iter: 10
+  frames: 1000              # PROXY horizon for the optimization loop (ranks
+                            #   prompts; validate the winner at 2000 afterwards)
+
+objective: median
+
+policy:
+  model: qwen2.5:3b
+  num_predict: 96
+
+synthesis:
+  mode: template            # deterministic 1-to-1 of the (now P4-worded) rules
+  model: qwen2.5:3b
+  temperature: 0.0
+  drop_below: 0.04
+  freedom:                  # off for the structure run; staged-freedom is a
+    start: 0.0              #   separate follow-up experiment (em_v3)
+    end: 0.0
+    ramp_after: 99
+    ramp_span: 1
+    freeze_structure: 9
+    candidates: 1
+
+optimizer:
+  alpha: 0.35
+  ridge_lambda: 1.0
+  explore_std: 0.12
+  explore_decay: 0.7
+  cold_start_rounds: 4
+  seed: 20260623
+
+engine:
+  lanes_side: 3
+  patches_ahead: 40
+  patches_behind: 5
+  other_agents: 10

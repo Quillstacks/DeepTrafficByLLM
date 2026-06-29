@@ -1,0 +1,7 @@
+experiment: {name: diag_template, iterations: 1, runs_per_iter: 6, frames: 2000}
+objective: median
+policy: {model: qwen2.5:3b, num_predict: 96}
+synthesis: {mode: template, model: qwen2.5:3b, temperature: 0.0, drop_below: 0.04,
+  freedom: {start: 0.0, end: 0.0, ramp_after: 99, ramp_span: 1, freeze_structure: 9, candidates: 1}}
+optimizer: {alpha: 0.35, ridge_lambda: 1.0, explore_std: 0.0, explore_decay: 0.6, cold_start_rounds: 1, seed: 1}
+engine: {lanes_side: 3, patches_ahead: 40, patches_behind: 5, other_agents: 10}

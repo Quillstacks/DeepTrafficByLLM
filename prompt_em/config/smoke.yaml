@@ -1,0 +1,27 @@
+# Tiny end-to-end smoke test (NOT a real experiment): 2 short iterations.
+experiment:
+  name: smoke
+  iterations: 2
+  runs_per_iter: 2
+  frames: 300
+objective: median
+policy:
+  model: qwen2.5:3b
+  num_predict: 96
+synthesis:
+  mode: llm
+  model: qwen2.5:3b
+  temperature: 0.0
+  drop_below: 0.04
+optimizer:
+  alpha: 0.35
+  ridge_lambda: 1.0
+  explore_std: 0.12
+  explore_decay: 0.6
+  cold_start_rounds: 2
+  seed: 1
+engine:
+  lanes_side: 3
+  patches_ahead: 40
+  patches_behind: 5
+  other_agents: 10

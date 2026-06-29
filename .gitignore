@@ -6,3 +6,6 @@ runs/
 .pytest_cache/
 node_modules/
 .DS_Store
+
+# scratch cache/outputs from the scripts/ track (re-derivable; documented in experiment.md)
+/results/

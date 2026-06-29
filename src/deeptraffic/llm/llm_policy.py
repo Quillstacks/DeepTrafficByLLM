@@ -103,7 +103,8 @@ def _format_user(ds: DecodedState) -> str:
     return "\n".join(lines)
 
 
-def _query(model: str, system: str, user: str, timeout: float = 40.0) -> str:
+def _query(model: str, system: str, user: str, timeout: float = 40.0,
+           num_predict: int = 96, schema: dict = SCHEMA) -> str:
     payload = {
         "model": model,
         "messages": [
@@ -111,9 +112,13 @@ def _query(model: str, system: str, user: str, timeout: float = 40.0) -> str:
             {"role": "user", "content": user},
         ],
         "stream": False,
-        "format": SCHEMA,
-        "options": {"num_predict": 48, "temperature": 0.0},
+        "format": schema,
+        "options": {"num_predict": num_predict, "temperature": 0.0},
     }
+    if "qwen3" in model:
+        # qwen3 emits <think> blocks by default; the structured 'reason' field
+        # is our CoT budget -- disable native thinking for comparable latency.
+        payload["think"] = False
     req = urllib.request.Request(
         OLLAMA_URL, data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json"},
@@ -122,20 +127,53 @@ def _query(model: str, system: str, user: str, timeout: float = 40.0) -> str:
     return r.get("message", {}).get("content", "")
 
 
+_ACTION_RE = None
+
+
+def parse_action(content: str) -> Optional[str]:
+    """Extract the chosen action from the model output. Strict JSON first; if
+    the JSON was truncated by the token budget, fall back to scanning for the
+    "action": "<enum>" pair (the schema guarantees the field name)."""
+    global _ACTION_RE
+    try:
+        act = json.loads(content).get("action")
+        if act in ACTION_ENUM:
+            return act
+    except Exception:
+        pass
+    if _ACTION_RE is None:
+        import re
+        _ACTION_RE = re.compile(r'"action"\s*:\s*"(%s)"?' % "|".join(ACTION_ENUM))
+    m = _ACTION_RE.search(content)
+    return m.group(1) if m else None
+
+
 class LLMPolicy:
     """callable(obs) -> engine action id (0..4)."""
 
     def __init__(self, lanes_side: int, patches_ahead: int, patches_behind: int,
-                 model: str = MODEL, cache: bool = False,
-                 system: str = SYSTEM, format_user=None):
+                 model: str = MODEL, cache=False,
+                 system: str = SYSTEM, format_user=None,
+                 num_predict: int = 96, schema: dict = SCHEMA):
+        """cache=False: query every decision (the honest pure benchmark).
+        cache='exact': memoize on the EXACT user-message text. At temperature=0
+            the model is a deterministic function of the prompt, so this returns
+            bit-identical decisions to cache=False -- it only avoids re-asking
+            the same question twice. Safe for evaluation.
+        cache=True: legacy lossy signature (gaps only, no speeds) -- fast but
+            NOT faithful to the pure policy; analysis only."""
         self.ls, self.pa, self.pb = lanes_side, patches_ahead, patches_behind
         self.model = model
         self.system = system
         self.format_user = format_user or _format_user
+        self.cache_mode = cache
         self.cache: Optional[dict] = {} if cache else None
+        self.num_predict = num_predict
+        self.schema = schema
         self.calls = 0
         self.cache_hits = 0
         self.parse_fail = 0
+        self._consec_fail = 0
 
     def _signature(self, ds: DecodedState):
         parts = [ds.ego_lane]
@@ -151,21 +189,42 @@ class LLMPolicy:
     def __call__(self, obs: np.ndarray) -> int:
         ds = decode(obs, self.ls, self.pa, self.pb)
         legal = set(ds.legal_actions())
-        sig = self._signature(ds) if self.cache is not None else None
+        user = self.format_user(ds)
+        if self.cache_mode == "exact":
+            sig = user
+        elif self.cache is not None:
+            sig = self._signature(ds)
+        else:
+            sig = None
         if sig is not None and sig in self.cache:
             self.cache_hits += 1
             return self.cache[sig]
+        ok = True
         try:
-            content = _query(self.model, self.system, self.format_user(ds))
+            content = _query(self.model, self.system, user,
+                             num_predict=self.num_predict, schema=self.schema)
             self.calls += 1
-            act = json.loads(content).get("action", "maintain")
+            act = parse_action(content)
+            if act is None:
+                self.parse_fail += 1
+                act = "maintain"
+                ok = False
         except Exception:
             self.parse_fail += 1
             act = "maintain"
+            ok = False
+        self._consec_fail = 0 if ok else self._consec_fail + 1
+        if self._consec_fail >= 25:
+            # 25 failures in a row means the LLM server is down, not that the
+            # model is misbehaving -- abort loudly instead of silently scoring
+            # the do-nothing floor with "maintain" fallbacks.
+            raise RuntimeError(
+                "LLM backend unreachable/failing (25 consecutive failures); "
+                "is `ollama serve` running with %s pulled?" % self.model)
         if act not in legal:
             act = "maintain"
         aid = ACTION_TO_ID.get(act, 0)
-        if sig is not None:
+        if sig is not None and ok:
             self.cache[sig] = aid
         return aid
 
