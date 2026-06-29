@@ -613,3 +613,40 @@ future work and are NOT part of the current results:
   runs.
 - Model bake-off on the best prompt: qwen2.5:3b vs llama3.2:3b vs qwen3:1.7b.
 - Official 500×2000 with the winner + pure no-cache spot-check.
+
+---
+
+## Appendix A — the hand-tuned champion prompt (P4), verbatim
+
+**Eval protocol (be precise):** P4 was evaluated at **24 runs × 2000 frames** on
+the official *deterministic* seed sequence, 11-car mode — NOT the official
+500-run protocol (a 500-run LLM eval is ~days of GPU on this box; only the fast
+heuristics H5/H6 got the full 500×2000 + 10-block variance). Result: **median
+76.50, mean 76.13**, bootstrap 95% CI **[76.04, 76.80]**, P(median>76.3)=**0.85**;
+the no-cache integrity check confirmed the exact-cache equals the pure policy at
+temperature 0. So 76.50 is a 24-run median (expected median ≈ 76.4), reported as
+such throughout. Code: `scripts/prompt_lab.py` (variant `P4_convention` =
+`SYS_P4` + `fmt_p4`); reproduce with
+`PYTHONPATH=src .venv/bin/python scripts/prompt_lab.py 24 P4_convention`.
+
+**System prompt (`SYS_P4`, verbatim):**
+```
+You drive ONE car on a 7-lane highway; your score is your AVERAGE SPEED (top speed 80 mph). You auto-drive as fast as the road ahead allows.
+Your default action is ACCELERATE. Whenever your lane is OPEN or the car ahead is fast, accelerate - never 'maintain' (it wastes speed recovery) and never change lanes (a lane change costs speed unless it actually gets you past a slow car). Ignore cars behind you; never move aside for them.
+Change lanes ONLY to overtake when you are BLOCKED (a SLOW car CLOSE ahead in your lane). Pick an adjacent lane that is OPEN or whose nearest car is fast or far; NEVER move into a lane that also has a slow car close ahead, and never cut into a lane where a fast car is close behind. If both sides qualify, prefer the lane closer to the centre (lane 4).
+If you are blocked and neither side qualifies, ease off briefly and wait for a gap.
+Think in one short sentence, then choose one action.
+```
+
+**User message (`fmt_p4` semantic renderer):** a pure function of the same obs
+the DQN sees, translated to per-lane features using thresholds FAST=70 mph,
+NEAR=14 patches ("close"), REAR_NEAR=5, REAR_FAST=62. Example (a real blocked
+state):
+```
+You are in lane 4 of 7. STATUS: BLOCKED by a slow car ahead.
+Your lane: SLOW car CLOSE 7p ahead (41 mph).
+LEFT lane: slow car far 21p ahead (45 mph).
+RIGHT lane: OPEN (clear far ahead).
+Available actions: accelerate, decelerate, maintain, left, right
+```
+The model replies with a one-sentence reason + one action (JSON, temperature 0).

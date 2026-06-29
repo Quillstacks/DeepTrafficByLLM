@@ -119,6 +119,42 @@ rules — keep the forceful wording; that is what works) and **`config/default.y
 `manifest.json`, a per-iteration `iterations.jsonl`, a `summary.json` for
 plotting, and a human `report.md`.
 
+## Good first tasks (contributor onboarding)
+
+Self-contained tasks to get oriented, roughly easiest-first:
+
+1. **A video of a simulation run** (visualization). The engine is headless but
+   exposes every car's state each frame, so a rollout can be rendered and encoded
+   to MP4. Head start:
+   - Drive a rollout: `env = DeepTrafficEnv(lanes_side=3, patches_ahead=40,
+     patches_behind=5, other_agents=10)`, then per frame `env._eng.V(policy)`
+     (policy = the LLM policy or a heuristic from `src/deeptraffic/llm/`).
+   - Each frame, read the cars from `env._eng.z` (a list of 20 `Car`s; `z[0]` is
+     the ego, controlled cars have `.f == True`). Car fields: `.x` ∈ [0,140)
+     horizontal → **lane = floor(x/20)** (7 lanes); `.y` ∈ [−34,734) longitudinal
+     → patch = y/10; gas `.a` and safety `.c` → **speed ≈ 20·c·a mph**; scroll
+     offset `env._eng.E` keeps the ego near a fixed screen row.
+   - Render each frame (matplotlib/PIL: a 7-lane band, cars as boxes colored by
+     speed, ego highlighted) and encode with **ffmpeg** (already installed at
+     `/usr/bin/ffmpeg`; or `matplotlib.animation.FFMpegWriter`).
+   - Nice extra: a second panel showing the speed-grid the LLM actually *sees*
+     (`src/deeptraffic/llm/state_tool.py::decode`) next to the road view.
+
+2. **Result plots from the logs** (lighter). Every run writes
+   `prompt_em/results/<name>/{iterations.jsonl,summary.json}`; plot the median/mean
+   trajectory (shade cold-start vs exploit via each record's `optimizer.phase`),
+   the per-iteration `action_fractions`, and the `weight_contributions` /
+   `order_contributions` bars. These become the paper figures.
+
+3. **The deferred future-work experiments** (hooks already implemented):
+   - *Staged synthesizer freedom* — `synthesis.freedom` schedule +
+     `freeze_structure` (see `synthesize.py::_freedom_at` / `_freedom_instructions`);
+     run structure-search then unlock wording to chase the 74.6→76.5 gap.
+   - *Sequence-importance isolation* — `optimizer.freeze_emphasis: true` (vary
+     only order); measure how much sequence alone moves the score.
+   - *Multi-seed robustness* of the contribution rankings; *cross-model* transfer
+     of the best prompt to `llama3.2:3b` / `qwen3:1.7b`.
+
 ## Handover notes / status
 
 **Done & solid:** the engine (frame-exact, 18/18 tests), all baselines, the
