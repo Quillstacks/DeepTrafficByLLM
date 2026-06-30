@@ -650,3 +650,17 @@ RIGHT lane: OPEN (clear far ahead).
 Available actions: accelerate, decelerate, maintain, left, right
 ```
 The model replies with a one-sentence reason + one action (JSON, temperature 0).
+
+**State-space fairness caveat (LLM vs DQN).** The renderer is a *pure* function of
+the DQN's 315-cell observation (`ego_state()` = the JS `Map.s` grid, 7 lanes × 45
+patches) — it never adds information, online hints, or privileged signals. But it
+is **lossy**: it surfaces only the *nearest* car per lane, and only for the ego
+lane and its two immediate neighbours (lanes ±2/±3 of the 7-lane grid, every car
+behind the first in each lane, and the ego's own speed are dropped), then buckets
+the surviving gaps/speeds by the fixed thresholds above. So the LLM and the DQN
+share the same observation *source* but **not** identical input features: the LLM
+conditions on strictly less than the raw grid, through a hand-designed feature map
+(`state_tool.py::decode` → `fmt_p4`). This is an honest fairness limitation — the
+LLM is never given more than the DQN, and is arguably *handicapped* on multi-lane
+planning (it cannot see two lanes over) — and is now noted in the paper's §2 and
+Limitations.

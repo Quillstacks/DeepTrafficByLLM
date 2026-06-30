@@ -61,8 +61,9 @@ sweep finds \emph{no} configuration above ${\sim}76.5$, so $76.3$ sits near the
 engine's practical optimum for \emph{any} policy.
 
 \section{A small LLM at the ceiling}
-The policy receives a \emph{semantic rendering} of the exact observation the DQN
-sees (per-lane ``open / fast-far / slow-close'' plus an explicit rear status) and
+The policy receives a \emph{lossy semantic rendering} of the same observation the
+DQN sees---the nearest car per lane within the ego's lane and its two neighbours,
+as ``open / fast-far / slow-close'' plus an explicit rear status---and
 a short prose driving convention; it reasons one sentence and emits one of five
 actions. At temperature $0$ it is a deterministic function of the prompt, so an
 exact-text cache is decision-identical to querying every step (verified: pure
@@ -122,7 +123,12 @@ prompt optimizers, and the objective is closed-loop multi-agent control.
 The margin over 76.3 is necessarily thin (the engine ceiling is ${\sim}76.5$) and
 our 24-run significance is suggestive (85\%), not yet 95\%. Credit assignment over
 $K$ heuristics from few in-loop evaluations is sample-limited, and emphasis and
-order confound under joint search. The automated loop reaches the mid-75s without
+order confound under joint search. The policy and the DQN share an observation
+\emph{source} but not identical input features: the renderer is fixed and
+information-non-increasing---no privileged data reaches the policy---yet it
+exposes only a hand-thresholded slice of the 315-cell grid (nearest car per lane,
+ego $\pm 1$ lanes), so part of the policy's competence sits in this feature map
+rather than in the model. The automated loop reaches the mid-75s without
 any manual wordsmithing but does not yet match the hand-tuned 76.5: the residual
 gap is prompt \emph{wording}, which neither the weight nor the order channel
 reaches. Closing it---a staged synthesizer \emph{freedom} that explores wording
