@@ -4,11 +4,28 @@ import os
 import numpy as np
 
 # TODO: Check if plotting is needed for each result and add according identifier in plot titles.
+# TODO: Make it so NAME is not hardcoded (CLI or ???)
+
+# ------------------------------- MATPLOTLIB PARAMS -------------------------------
+plt.rcParams.update({
+    "figure.figsize": (10, 6),
+    "font.size": 12,
+    "axes.titlesize": 13,
+    "axes.labelsize": 12,
+    "axes.grid": True,
+    "grid.alpha": 0.3,
+    "legend.fontsize": 10,
+    "savefig.dpi": 300,
+    "savefig.bbox": "tight",
+})
+
+COLOR_POSITIVE = "tab:blue"
+COLOR_NEGATIVE = "tab:orange"
+# ------------------------------------- END ---------------------------------------
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SUITE = os.path.dirname(HERE)                              # prompt_em/
 #REPO = os.path.dirname(SUITE)                              # DeepTrafficByLLM/
-
 NAME = "em_v3_large"
 
 def get_dirs(name: str) -> tuple[str, str]:
@@ -30,12 +47,11 @@ iterations = load_iterations(IN_DIR)
 
 def plot_trajectories():
     phases = [run["optimizer"]["phase"] for run in iterations]
-    print(phases)
     cold_start_end = None
 
     for i, phase in enumerate(phases):
         if phase == "exploit":
-            cold_start_end = i
+            cold_start_end = i+1
             break
 
     mean_trajectory = summary["mean_trajectory"]
@@ -45,15 +61,18 @@ def plot_trajectories():
     x_ticks = range(1, n + 1)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.axvspan(0, cold_start_end - 0.001, color="gray", alpha=0.1, label="Cold Start Phase")
-    ax.axvspan(cold_start_end-0.001, len(iterations), color="green", alpha=0.1, label="Exploit Phase")
+    ax.axvspan(0, cold_start_end - 0.05, color="gray", alpha=0.1, label="Cold Start Phase")
+    ax.axvspan(cold_start_end-0.05, len(iterations), color="green", alpha=0.1, label="Exploit Phase")
     ax.plot(x_ticks, mean_trajectory, label="Mean Trajectory", color="tab:blue")
     ax.plot(x_ticks, median_trajectory, label="Median Trajectory", color="tab:orange")
 
+    ax.set_xlabel("Iteration")
+    ax.set_ylabel("Fleet Speed [mph]")
     ax.set_xticks(x_ticks)
     ax.set_xlim(x_ticks[0], x_ticks[-1])
+    ax.set_yticks(np.arange(np.floor(min(min(mean_trajectory), min(median_trajectory))), np.ceil(max(max(mean_trajectory), max(median_trajectory))) + 1, 1))
 
-    ax.legend(fontsize=10, loc="lower right")
+    ax.legend()
 
     ax.set_title("Mean and Median Trajectories")
 
@@ -61,15 +80,13 @@ def plot_trajectories():
     #fig.savefig(os.path.join(OUT_DIR, "action_fractions_stackplot.pdf"), bbox_inches='tight')
     plt.show()
 
-#plot_trajectories()
+plot_trajectories()
 
 def plot_action_fractions():
     action_fraction_trajectory = summary["action_fraction_trajectory"]
     actions = ["maintain", "accelerate", "decelerate", "left", "right"]
 
     action_fractions = {a: [run[a] for run in action_fraction_trajectory] for a in actions}
-
-    print(action_fractions)
     
     n = len(action_fraction_trajectory)
     x_ticks = range(1, n + 1)
@@ -90,31 +107,28 @@ def plot_action_fractions():
 
     ax.legend(fontsize=10, title="Actions", loc="upper right")
 
+    ax.grid(False, axis="x")
+
+
     ax.set_title("Fraction of Actions Taken across Iterations")
     
     plt.tight_layout()
     #fig.savefig(os.path.join(OUT_DIR, "action_fractions_stackplot.pdf"), bbox_inches='tight')
     plt.show()
 
-#plot_action_fractions()
+plot_action_fractions()
 
 def plot_action_fractions_stackplot():
     action_fraction_trajectory = summary["action_fraction_trajectory"]
     actions = ["maintain", "accelerate", "decelerate", "left", "right"]
 
     action_fractions = {a: [run[a] for run in action_fraction_trajectory] for a in actions}
-
-    print(action_fractions)
     
     n = len(action_fraction_trajectory)
     x_ticks = range(1, n + 1)
-    bottom = np.zeros(n)
 
     fig, ax = plt.subplots(figsize=(10,6))
-    for a in actions:
-        values = action_fractions[a]
-        ax.stackplot(x_ticks, *[action_fractions[a] for a in actions], labels=actions)
-        bottom += np.array(values)
+    ax.stackplot(x_ticks, *[action_fractions[a] for a in actions], labels=actions)
 
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Fraction of Action in Iteration")
@@ -123,17 +137,15 @@ def plot_action_fractions_stackplot():
     ax.set_xticks(x_ticks)
     ax.set_yticks(np.arange(0, 1.1, 0.1))
 
-    handles, labels = ax.get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    ax.legend(by_label.values(), by_label.keys(), title="Actions", loc="upper right")
-
     ax.set_title("Fraction of Actions Taken across Iterations")
+
+    ax.legend()
     
     plt.tight_layout()
     #fig.savefig(os.path.join(OUT_DIR, "action_fractions_stackplot.pdf"), bbox_inches='tight')
     plt.show()
 
-#plot_action_fractions_stackplot()
+plot_action_fractions_stackplot()
 
 weight_contributions = summary["final_weight_contributions"]
 
@@ -144,20 +156,28 @@ def plot_contributions(kind):
     elif kind == "order":
         contributions = summary["final_order_contributions"]
 
-    ids = list(weight_contributions.keys())
+    ids = list(contributions.keys())
     values = np.array([contributions[i] for i in ids])
 
     order = np.argsort(values)
     ids_sorted = [ids[i] for i in order]
     values_sorted = values[order]
 
-    colors = ["tab:red" if value < 0 else "tab:green" for value in values_sorted]
+    colors = [COLOR_NEGATIVE if value < 0 else COLOR_POSITIVE for value in values_sorted]
+
+    max_abs = max(abs(values_sorted.min()), abs(values_sorted.max()))
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.barh(ids_sorted, values_sorted, color=colors)
     ax.axvline(0, color="black", linewidth=0.8)
+
     ax.set_xlabel("Contribution Value")
+    ax.set_xlim((-max_abs)*1.05, max_abs*1.05)
     ax.set_ylabel("Heuristic")
+
+    ax.grid(False, axis="y")
+
+
     ax.set_title(f"Final {kind.capitalize()} Contributions")
 
     plt.tight_layout()
@@ -165,12 +185,7 @@ def plot_contributions(kind):
     plt.show()
 
 
-#plot_contributions("weight")
+plot_contributions("weight")
 plot_contributions("order")   
 
-def plot_weight_contributions():
-    pass
-
-def plot_order_contributions():
-    pass
 
