@@ -3,10 +3,10 @@ import json
 import os
 import numpy as np
 
-# TODO: Check if plotting is needed for each result and add according identifier in plot titles.
-# TODO: Make it so NAME is not hardcoded (CLI or ???)
+# TODO: em_v2_template ???
 
-# ------------------------------- MATPLOTLIB PARAMS -------------------------------
+
+# ------------------------------- PLOT PARAMS -------------------------------
 plt.rcParams.update({
     "figure.figsize": (10, 6),
     "font.size": 12,
@@ -19,14 +19,22 @@ plt.rcParams.update({
     "savefig.bbox": "tight",
 })
 
+ACTION_COLORS = {
+    "maintain":   "#56B4E9",   # Sky Blue
+    "accelerate": "#009E73",   # Bluish Green
+    "decelerate": "#D55E00",   # Vermillion
+    "left":       "#0072B2",   # Blue
+    "right":      "#CC79A7",   # Reddish Purple
+}
+
 COLOR_POSITIVE = "tab:blue"
 COLOR_NEGATIVE = "tab:orange"
-# ------------------------------------- END ---------------------------------------
+# ------------------------------ PLOT PARAMS END ------------------------------
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SUITE = os.path.dirname(HERE)                              # prompt_em/
 #REPO = os.path.dirname(SUITE)                              # DeepTrafficByLLM/
-NAME = "em_v3_large"
+RESULT_NAMES = ["em_v1", "diag_template", "em_v2_template", "em_v3_large"]
 
 def get_dirs(name: str) -> tuple[str, str]:
     in_dir = os.path.join(SUITE, "results", name)
@@ -37,15 +45,18 @@ def get_dirs(name: str) -> tuple[str, str]:
 
     return in_dir, out_dir
 
+def load_summary(in_dir: str, name: str):
+    path = os.path.join(in_dir, "summary.json")
+    if not os.path.exists(path):
+        print(f"Summary file is missing in {in_dir}. Skipping...")
+        return None
+    return json.load(open(path))
+
 def load_iterations(in_dir: str):
     with open(os.path.join(in_dir, "iterations.jsonl")) as jsons:
         return [json.loads(line) for line in jsons]
 
-IN_DIR, OUT_DIR = get_dirs(NAME)
-summary = json.load(open(os.path.join(IN_DIR, "summary.json")))
-iterations = load_iterations(IN_DIR)
-
-def plot_trajectories():
+def plot_trajectories(summary, iterations, name, out_dir):
     phases = [run["optimizer"]["phase"] for run in iterations]
     cold_start_end = None
 
@@ -53,6 +64,9 @@ def plot_trajectories():
         if phase == "exploit":
             cold_start_end = i+1
             break
+
+    if cold_start_end is None:
+        cold_start_end = len(phases)
 
     mean_trajectory = summary["mean_trajectory"]
     median_trajectory = summary["median_trajectory"]
@@ -74,15 +88,12 @@ def plot_trajectories():
 
     ax.legend()
 
-    ax.set_title("Mean and Median Trajectories")
+    ax.set_title(f"Mean and Median Trajectories - {name}")
 
     plt.tight_layout()
-    #fig.savefig(os.path.join(OUT_DIR, "action_fractions_stackplot.pdf"), bbox_inches='tight')
-    plt.show()
+    fig.savefig(os.path.join(out_dir, "mean_median_trajectories.pdf"))
 
-plot_trajectories()
-
-def plot_action_fractions():
+def plot_action_fractions(summary, out_dir, name):
     action_fraction_trajectory = summary["action_fraction_trajectory"]
     actions = ["maintain", "accelerate", "decelerate", "left", "right"]
 
@@ -95,7 +106,7 @@ def plot_action_fractions():
     fig, ax = plt.subplots(figsize=(10,6))
     for a in actions:
         values = action_fractions[a]
-        ax.bar(x_ticks, values, bottom=bottom, label=a)
+        ax.bar(x_ticks, values, bottom=bottom, label=a, color=ACTION_COLORS[a])
         bottom += np.array(values)
 
     ax.set_xlabel("Iteration")
@@ -110,15 +121,12 @@ def plot_action_fractions():
     ax.grid(False, axis="x")
 
 
-    ax.set_title("Fraction of Actions Taken across Iterations")
+    ax.set_title(f"Fraction of Actions Taken across Iterations - {name}")
     
     plt.tight_layout()
-    #fig.savefig(os.path.join(OUT_DIR, "action_fractions_stackplot.pdf"), bbox_inches='tight')
-    plt.show()
+    fig.savefig(os.path.join(out_dir, "action_fractions.pdf"))
 
-plot_action_fractions()
-
-def plot_action_fractions_stackplot():
+def plot_action_fractions_stackplot(summary, out_dir, name):
     action_fraction_trajectory = summary["action_fraction_trajectory"]
     actions = ["maintain", "accelerate", "decelerate", "left", "right"]
 
@@ -128,7 +136,7 @@ def plot_action_fractions_stackplot():
     x_ticks = range(1, n + 1)
 
     fig, ax = plt.subplots(figsize=(10,6))
-    ax.stackplot(x_ticks, *[action_fractions[a] for a in actions], labels=actions)
+    ax.stackplot(x_ticks, *[action_fractions[a] for a in actions], labels=actions, colors=[ACTION_COLORS[a] for a in actions])
 
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Fraction of Action in Iteration")
@@ -137,24 +145,23 @@ def plot_action_fractions_stackplot():
     ax.set_xticks(x_ticks)
     ax.set_yticks(np.arange(0, 1.1, 0.1))
 
-    ax.set_title("Fraction of Actions Taken across Iterations")
+    ax.set_title(f"Fraction of Actions Taken across Iterations - {name}")
 
     ax.legend()
     
     plt.tight_layout()
-    #fig.savefig(os.path.join(OUT_DIR, "action_fractions_stackplot.pdf"), bbox_inches='tight')
-    plt.show()
+    fig.savefig(os.path.join(out_dir, "action_fractions_stackplot.pdf"))
 
-plot_action_fractions_stackplot()
-
-weight_contributions = summary["final_weight_contributions"]
-
-def plot_contributions(kind):
+def plot_contributions(summary, out_dir, name, kind):
     if kind == "weight":
         contributions = summary["final_weight_contributions"]
 
     elif kind == "order":
         contributions = summary["final_order_contributions"]
+
+    if contributions is None:
+        print(f"No {kind} contributions found in summary for {name}. Skipping...")
+        return
 
     ids = list(contributions.keys())
     values = np.array([contributions[i] for i in ids])
@@ -178,14 +185,27 @@ def plot_contributions(kind):
     ax.grid(False, axis="y")
 
 
-    ax.set_title(f"Final {kind.capitalize()} Contributions")
+    ax.set_title(f"Final {kind.capitalize()} Contributions - {name}")
 
     plt.tight_layout()
-    #fig.savefig(os.path.join(OUT_DIR, f"{kind}_contributions.pdf"), bbox_inches='tight')
-    plt.show()
+    fig.savefig(os.path.join(out_dir, f"{kind}_contributions.pdf"))
 
+def main():
+    for name in RESULT_NAMES:
+        in_dir, out_dir = get_dirs(name)
+        summary = load_summary(in_dir, name)
 
-plot_contributions("weight")
-plot_contributions("order")   
+        if summary is None:
+            continue
 
+        iterations = load_iterations(in_dir)
+
+        plot_trajectories(summary, iterations, name, out_dir)
+        plot_action_fractions(summary, out_dir, name)
+        plot_action_fractions_stackplot(summary, out_dir, name)
+        plot_contributions(summary, out_dir, name, "weight")
+        plot_contributions(summary, out_dir, name, "order")
+
+if __name__ == "__main__":
+    main()
 
