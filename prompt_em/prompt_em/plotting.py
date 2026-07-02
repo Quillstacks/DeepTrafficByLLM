@@ -3,8 +3,9 @@ import json
 import os
 import numpy as np
 
-# TODO: em_v2_template ???
-
+# TODO: Handle edge cases (diag_template, em_v2_template)
+# TODO: Change color palette.
+# TODO: Add wording_sequence result once appropriate branches are merged.
 
 # ------------------------------- PLOT PARAMS -------------------------------
 plt.rcParams.update({
@@ -57,16 +58,20 @@ def load_iterations(in_dir: str):
         return [json.loads(line) for line in jsons]
 
 def plot_trajectories(summary, iterations, name, out_dir):
+    """
+    Plots mean and median trajectories of fleet speed across iterations. Cold Start and Exploit phases are highlighted.
+    """
     phases = [run["optimizer"]["phase"] for run in iterations]
-    cold_start_end = None
+    exploit_begin = None
 
+    # Find index for start of exploit phase.
     for i, phase in enumerate(phases):
         if phase == "exploit":
-            cold_start_end = i+1
+            exploit_begin = i + 1
             break
 
-    if cold_start_end is None:
-        cold_start_end = len(phases)
+    if exploit_begin is None:
+        exploit_begin = len(phases)
 
     mean_trajectory = summary["mean_trajectory"]
     median_trajectory = summary["median_trajectory"]
@@ -75,8 +80,8 @@ def plot_trajectories(summary, iterations, name, out_dir):
     x_ticks = range(1, n + 1)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.axvspan(0, cold_start_end - 0.05, color="gray", alpha=0.1, label="Cold Start Phase")
-    ax.axvspan(cold_start_end-0.05, len(iterations), color="green", alpha=0.1, label="Exploit Phase")
+    ax.axvspan(0, exploit_begin - 0.05, color="gray", alpha=0.1, label="Cold Start Phase")
+    ax.axvspan(exploit_begin - 0.05, len(iterations), color="green", alpha=0.1, label="Exploit Phase")
     ax.plot(x_ticks, mean_trajectory, label="Mean Trajectory", color="tab:blue")
     ax.plot(x_ticks, median_trajectory, label="Median Trajectory", color="tab:orange")
 
@@ -94,9 +99,13 @@ def plot_trajectories(summary, iterations, name, out_dir):
     fig.savefig(os.path.join(out_dir, "mean_median_trajectories.pdf"))
 
 def plot_action_fractions(summary, out_dir, name):
+    """
+    Plots the fraction of each action taken across iterations as a stacked bar chart.
+    """
     action_fraction_trajectory = summary["action_fraction_trajectory"]
     actions = ["maintain", "accelerate", "decelerate", "left", "right"]
 
+    # Map each action to a list of the fractions it was used in each iteration.
     action_fractions = {a: [run[a] for run in action_fraction_trajectory] for a in actions}
     
     n = len(action_fraction_trajectory)
@@ -127,9 +136,13 @@ def plot_action_fractions(summary, out_dir, name):
     fig.savefig(os.path.join(out_dir, "action_fractions.pdf"))
 
 def plot_action_fractions_stackplot(summary, out_dir, name):
+    """
+    Plots the fraction of each action taken across iterations as a stackplot (filled area plot).
+    """
     action_fraction_trajectory = summary["action_fraction_trajectory"]
     actions = ["maintain", "accelerate", "decelerate", "left", "right"]
 
+    # Map each action to a list of the fractions it was used in each iteration.
     action_fractions = {a: [run[a] for run in action_fraction_trajectory] for a in actions}
     
     n = len(action_fraction_trajectory)
@@ -153,11 +166,17 @@ def plot_action_fractions_stackplot(summary, out_dir, name):
     fig.savefig(os.path.join(out_dir, "action_fractions_stackplot.pdf"))
 
 def plot_contributions(summary, out_dir, name, kind):
+    """
+    Plots either the weight or order contributions of heuristics as a bar chart. The kind parameter should be either "weight" or "order".
+    """
     if kind == "weight":
         contributions = summary["final_weight_contributions"]
 
     elif kind == "order":
         contributions = summary["final_order_contributions"]
+
+    else:
+        raise ValueError(f"Invalid kind: {kind}. Must be either 'weight' or 'order'.")
 
     if contributions is None:
         print(f"No {kind} contributions found in summary for {name}. Skipping...")
