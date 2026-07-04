@@ -4,7 +4,7 @@
   "heuristics_path": "C:\\Users\\Bl\u00f6ki\\Desktop\\projects\\DeepTrafficByLLM\\prompt_em\\config\\heuristics_omit_overtake_when_blocked.yaml",
   "config": {
     "experiment": {
-      "name": "my_run",
+      "name": "omit_overtake_when_blocked",
       "iterations": 16,
       "runs_per_iter": 10,
       "frames": 1000

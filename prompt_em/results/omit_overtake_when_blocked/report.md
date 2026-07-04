@@ -1,4 +1,4 @@
-# prompt-EM report — my_run
+# prompt-EM report ï¿½ omit_overtake_when_blocked
 
 - objective: **median fleet mph** (target: beat 76.3 ceiling)
 - iterations: 16 x 10 runs
@@ -25,7 +25,7 @@
 | 14 | **75.53** | 75.45 | 73.92 | 76.71 | 8 |
 | 15 | **75.73** | 74.30 | 67.65 | 77.01 | 44 |
 
-**Best iteration: 11 — median 75.75, mean 75.44.**
+**Best iteration: 11 ï¿½ median 75.75, mean 75.44.**
 
 ## Emphasis contributions (higher weight => helps the objective)
 
@@ -67,7 +67,7 @@
 | prefer_centre_on_tie | -0.870 |
 | fast_or_far_not_blocking | -1.430 |
 
-## Best prompt — sequence (heuristics in order)
+## Best prompt ï¿½ sequence (heuristics in order)
 
 ignore_rear_when_not_overtaking -> best_of_blocked -> keep_following_gap -> fast_or_far_not_blocking -> overtake_early -> accelerate_when_clear -> wait_if_boxed_in -> commit_after_change -> avoid_slow_close_lane -> pick_faster_side -> spread_to_outer_when_clear -> top_speed_when_open -> prefer_centre_on_tie -> rear_safety -> avoid_edge_lanes
 

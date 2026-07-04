@@ -1,5 +1,5 @@
 {
-  "name": "my_run",
+  "name": "omit_overtake_when_blocked",
   "objective": "median",
   "iterations": 16,
   "runs_per_iter": 10,
