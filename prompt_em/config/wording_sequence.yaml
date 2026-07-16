@@ -1,0 +1,44 @@
+# Recommended starting configuration for the prompt-EM suite.
+# Run:  PYTHONPATH=../src:. ../.venv/bin/python -m prompt_em.cli run --config config/default.yaml
+#
+# Defaults reflect what the experiments found works (see ../../experiment.md):
+#  * synthesis = TEMPLATE (deterministic). LLM synthesis with a 3B model was a
+#    high-variance channel that collapsed the policy (em_v1); the proven wording
+#    is baked into heuristics.yaml, so the template reproduces a strong prompt.
+#  * a 1000-frame PROXY objective for the loop (≈1 h/iter on a GTX 1060); validate
+#    the best prompt at the full 2000-frame protocol afterwards with validate.py.
+#
+# Only the order is tuned by the optimizer here.
+
+experiment:
+  name: wording_sequence          # results land in results/<name>/
+  iterations: 16            # more iterations -> sharper EM credit assignment
+  runs_per_iter: 10         # engine runs per evaluation (the objective sample)
+  frames: 1000              # PROXY horizon (validate the winner at 2000 after)
+
+objective: median           # the official DeepTraffic metric (mean also logged)
+
+policy:
+  model: qwen2.5:3b         # the LLM that DRIVES every controlled car
+  num_predict: 96
+
+synthesis:
+  mode: template            # template (recommended) | llm  (see note above)
+  model: qwen2.5:3b         # only used when mode = llm
+  temperature: 0.0
+  drop_below: 0.04          # heuristics below this weight-share are omitted
+
+optimizer:                  # regression-EM over emphasis weights AND order
+  alpha: 0.35               # learning rate: w <- (1-alpha)*w_best + alpha*responsibility
+  ridge_lambda: 1.0
+  explore_std: 0.13
+  explore_decay: 0.8
+  cold_start_rounds: 8      # Latin-hypercube exploration (identifiability)
+  seed: 20260623
+  freeze_emphasis: true     # freeze weights, vary only ORDER
+
+engine:                     # DeepTraffic 11-car benchmark config
+  lanes_side: 3
+  patches_ahead: 40
+  patches_behind: 5
+  other_agents: 10

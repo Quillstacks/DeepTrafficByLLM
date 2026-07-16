@@ -1,0 +1,277 @@
+{
+  "name": "wording_sequence",
+  "objective": "median",
+  "iterations": 16,
+  "runs_per_iter": 10,
+  "heuristic_ids": [
+    "accelerate_when_clear",
+    "fast_or_far_not_blocking",
+    "overtake_when_blocked",
+    "pick_faster_side",
+    "avoid_slow_close_lane",
+    "wait_if_boxed_in",
+    "rear_safety",
+    "ignore_rear_when_not_overtaking",
+    "prefer_centre_on_tie",
+    "spread_to_outer_when_clear",
+    "top_speed_when_open",
+    "overtake_early",
+    "best_of_blocked",
+    "commit_after_change",
+    "keep_following_gap",
+    "avoid_edge_lanes"
+  ],
+  "median_trajectory": [
+    74.61,
+    75.57,
+    74.12,
+    74.93,
+    74.67,
+    74.37,
+    74.6,
+    74.28,
+    74.92,
+    73.29,
+    74.42,
+    74.18,
+    72.96,
+    73.24,
+    74.77,
+    73.58
+  ],
+  "mean_trajectory": [
+    74.334,
+    74.837,
+    73.372,
+    73.409,
+    74.101,
+    74.124,
+    73.907,
+    73.728,
+    74.456,
+    73.221,
+    73.654,
+    74.181,
+    72.136,
+    72.401,
+    74.345,
+    73.74
+  ],
+  "objective_trajectory": [
+    74.61,
+    75.57,
+    74.12,
+    74.93,
+    74.67,
+    74.37,
+    74.6,
+    74.28,
+    74.92,
+    73.29,
+    74.42,
+    74.18,
+    72.96,
+    73.24,
+    74.77,
+    73.58
+  ],
+  "best_iteration": 1,
+  "best_median": 75.57,
+  "best_mean": 74.837,
+  "best_order": [
+    "spread_to_outer_when_clear",
+    "avoid_edge_lanes",
+    "overtake_early",
+    "best_of_blocked",
+    "prefer_centre_on_tie",
+    "wait_if_boxed_in",
+    "pick_faster_side",
+    "avoid_slow_close_lane",
+    "commit_after_change",
+    "overtake_when_blocked",
+    "keep_following_gap",
+    "ignore_rear_when_not_overtaking",
+    "top_speed_when_open",
+    "accelerate_when_clear",
+    "fast_or_far_not_blocking",
+    "rear_safety"
+  ],
+  "best_weights": {
+    "accelerate_when_clear": 0.1032,
+    "fast_or_far_not_blocking": 0.0903,
+    "overtake_when_blocked": 0.0968,
+    "pick_faster_side": 0.0839,
+    "avoid_slow_close_lane": 0.0839,
+    "wait_if_boxed_in": 0.0645,
+    "rear_safety": 0.0581,
+    "ignore_rear_when_not_overtaking": 0.0645,
+    "prefer_centre_on_tie": 0.0387,
+    "spread_to_outer_when_clear": 0.0194,
+    "top_speed_when_open": 0.0774,
+    "overtake_early": 0.0645,
+    "best_of_blocked": 0.0516,
+    "commit_after_change": 0.0452,
+    "keep_following_gap": 0.0323,
+    "avoid_edge_lanes": 0.0258
+  },
+  "best_system_prompt": "You drive ONE car on a 7-lane highway; your score is your AVERAGE SPEED (top speed 80 mph). You auto-drive as fast as the road right ahead allows. Follow these driving rules:\n- (Important) Begin overtaking as soon as a slow car is close ahead; do not wait until you are right behind it, by which time the adjacent lane may have filled.\n- (Important) If every lane has a slow car close ahead, move toward the lane whose nearest car is the fastest -- take the least-bad option rather than staying stuck behind the slowest.\n- (Important) If you are blocked and neither side lane is genuinely better, ease off briefly and wait for a gap rather than forcing a bad lane change.\n- (Important) When overtaking, move to the side lane that is open, or whose nearest car is faster or farther ahead than the car blocking you -- pick the genuinely faster side.\n- (Important) NEVER move into a lane that itself has a slow car close ahead -- that is not a real escape, it only trades one block for another.\n- (Also) Right after you change lanes, accelerate and hold the new lane; do not immediately change again or oscillate between lanes.\n- (ALWAYS) When a SLOW car is close ahead in your lane you are stuck at its speed and accelerating is useless, so you MUST change to an adjacent lane to overtake instead of staying behind it.\n- (Important) When you are not overtaking, ignore the cars behind you completely and never move aside for them.\n- (Important) When the road far ahead in your lane is clear, accelerate all the way to top speed -- an empty lane is the fastest lane, so do not hold back.\n- (ALWAYS) Your DEFAULT action is to ACCELERATE: whenever your lane is open or the car ahead is fast, accelerate and stay in your lane -- never just maintain, because maintaining wastes the speed you could be regaining.\n- (ALWAYS) A car ahead that is near top speed or far away does NOT block you -- you could not go faster anyway, so do not slow down, maintain, or change lanes for it; keep accelerating.\n- (Important) Do not change into a lane where a fast car is close behind you; you would cut it off and lose speed.\nThink in one short sentence, then choose one action.",
+  "final_weight_contributions": {
+    "accelerate_when_clear": -0.0,
+    "fast_or_far_not_blocking": 0.0,
+    "overtake_when_blocked": 0.0,
+    "pick_faster_side": -0.0,
+    "avoid_slow_close_lane": -0.0,
+    "wait_if_boxed_in": 0.0,
+    "rear_safety": -0.0,
+    "ignore_rear_when_not_overtaking": 0.0,
+    "prefer_centre_on_tie": 0.0,
+    "spread_to_outer_when_clear": 0.0,
+    "top_speed_when_open": 0.0,
+    "overtake_early": 0.0,
+    "best_of_blocked": -0.0,
+    "commit_after_change": 0.0,
+    "keep_following_gap": 0.0,
+    "avoid_edge_lanes": -0.0
+  },
+  "final_order_contributions": {
+    "accelerate_when_clear": 0.0473,
+    "fast_or_far_not_blocking": 0.0492,
+    "overtake_when_blocked": -0.0422,
+    "pick_faster_side": 0.0019,
+    "avoid_slow_close_lane": 0.0413,
+    "wait_if_boxed_in": 0.0233,
+    "rear_safety": 0.0251,
+    "ignore_rear_when_not_overtaking": 0.0281,
+    "prefer_centre_on_tie": 0.0171,
+    "spread_to_outer_when_clear": -0.0577,
+    "top_speed_when_open": 0.0041,
+    "overtake_early": -0.1114,
+    "best_of_blocked": 0.0684,
+    "commit_after_change": -0.0683,
+    "keep_following_gap": 0.0189,
+    "avoid_edge_lanes": -0.045
+  },
+  "action_fraction_trajectory": [
+    {
+      "maintain": 0.0269,
+      "accelerate": 0.5344,
+      "decelerate": 0.0353,
+      "left": 0.1413,
+      "right": 0.262
+    },
+    {
+      "maintain": 0.0075,
+      "accelerate": 0.7243,
+      "decelerate": 0.0027,
+      "left": 0.1177,
+      "right": 0.1479
+    },
+    {
+      "maintain": 0.0126,
+      "accelerate": 0.4719,
+      "decelerate": 0.0054,
+      "left": 0.1781,
+      "right": 0.332
+    },
+    {
+      "maintain": 0.0105,
+      "accelerate": 0.7581,
+      "decelerate": 0.0078,
+      "left": 0.1042,
+      "right": 0.1195
+    },
+    {
+      "maintain": 0.0147,
+      "accelerate": 0.5314,
+      "decelerate": 0.0021,
+      "left": 0.1518,
+      "right": 0.3
+    },
+    {
+      "maintain": 0.0578,
+      "accelerate": 0.647,
+      "decelerate": 0.047,
+      "left": 0.1054,
+      "right": 0.1428
+    },
+    {
+      "maintain": 0.0314,
+      "accelerate": 0.6817,
+      "decelerate": 0.0024,
+      "left": 0.0946,
+      "right": 0.1898
+    },
+    {
+      "maintain": 0.0099,
+      "accelerate": 0.5198,
+      "decelerate": 0.0386,
+      "left": 0.1751,
+      "right": 0.2566
+    },
+    {
+      "maintain": 0.0081,
+      "accelerate": 0.7473,
+      "decelerate": 0.0,
+      "left": 0.1024,
+      "right": 0.1422
+    },
+    {
+      "maintain": 0.0069,
+      "accelerate": 0.721,
+      "decelerate": 0.0039,
+      "left": 0.0937,
+      "right": 0.1746
+    },
+    {
+      "maintain": 0.0105,
+      "accelerate": 0.7108,
+      "decelerate": 0.0003,
+      "left": 0.1234,
+      "right": 0.1551
+    },
+    {
+      "maintain": 0.0087,
+      "accelerate": 0.6266,
+      "decelerate": 0.0003,
+      "left": 0.1569,
+      "right": 0.2075
+    },
+    {
+      "maintain": 0.0114,
+      "accelerate": 0.8246,
+      "decelerate": 0.024,
+      "left": 0.0329,
+      "right": 0.1072
+    },
+    {
+      "maintain": 0.0093,
+      "accelerate": 0.6979,
+      "decelerate": 0.0045,
+      "left": 0.1192,
+      "right": 0.1692
+    },
+    {
+      "maintain": 0.0072,
+      "accelerate": 0.7018,
+      "decelerate": 0.0021,
+      "left": 0.0961,
+      "right": 0.1928
+    },
+    {
+      "maintain": 0.0057,
+      "accelerate": 0.7099,
+      "decelerate": 0.0018,
+      "left": 0.091,
+      "right": 0.1916
+    }
+  ],
+  "total_llm_calls": 40270,
+  "total_parse_fail": 162,
+  "wall_seconds": 20565,
+  "ceiling_ref": {
+    "all_time": 76.3,
+    "best_heuristic_H6": 76.4,
+    "hand_tuned_P4_24run": 76.5,
+    "real_DQN": 74.13
+  }
+}
