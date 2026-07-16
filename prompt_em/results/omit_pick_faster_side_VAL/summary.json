@@ -1,0 +1,272 @@
+{
+  "name": "omit_pick_faster_side_VAL",
+  "objective": "median",
+  "iterations": 16,
+  "runs_per_iter": 10,
+  "heuristic_ids": [
+    "accelerate_when_clear",
+    "fast_or_far_not_blocking",
+    "overtake_when_blocked",
+    "avoid_slow_close_lane",
+    "wait_if_boxed_in",
+    "rear_safety",
+    "ignore_rear_when_not_overtaking",
+    "prefer_centre_on_tie",
+    "spread_to_outer_when_clear",
+    "top_speed_when_open",
+    "overtake_early",
+    "best_of_blocked",
+    "commit_after_change",
+    "keep_following_gap",
+    "avoid_edge_lanes"
+  ],
+  "median_trajectory": [
+    74.02,
+    74.7,
+    68.13,
+    73.16,
+    75.62,
+    63.89,
+    73.81,
+    74.14,
+    75.48,
+    75.49,
+    74.45,
+    73.88,
+    72.87,
+    75.35,
+    74.41,
+    75.31
+  ],
+  "mean_trajectory": [
+    72.661,
+    74.188,
+    66.39,
+    67.965,
+    75.105,
+    63.585,
+    74.25,
+    73.356,
+    75.254,
+    74.761,
+    74.14,
+    73.863,
+    72.822,
+    74.487,
+    73.792,
+    74.421
+  ],
+  "objective_trajectory": [
+    74.02,
+    74.7,
+    68.13,
+    73.16,
+    75.62,
+    63.89,
+    73.81,
+    74.14,
+    75.48,
+    75.49,
+    74.45,
+    73.88,
+    72.87,
+    75.35,
+    74.41,
+    75.31
+  ],
+  "best_iteration": 4,
+  "best_median": 75.62,
+  "best_mean": 75.105,
+  "best_order": [
+    "wait_if_boxed_in",
+    "accelerate_when_clear",
+    "avoid_edge_lanes",
+    "commit_after_change",
+    "fast_or_far_not_blocking",
+    "top_speed_when_open",
+    "overtake_early",
+    "prefer_centre_on_tie",
+    "ignore_rear_when_not_overtaking",
+    "avoid_slow_close_lane",
+    "rear_safety",
+    "keep_following_gap",
+    "best_of_blocked",
+    "overtake_when_blocked",
+    "spread_to_outer_when_clear"
+  ],
+  "best_weights": {
+    "accelerate_when_clear": 0.084,
+    "fast_or_far_not_blocking": 0.1542,
+    "overtake_when_blocked": 0.0375,
+    "avoid_slow_close_lane": 0.064,
+    "wait_if_boxed_in": 0.122,
+    "rear_safety": 0.0489,
+    "ignore_rear_when_not_overtaking": 0.0049,
+    "prefer_centre_on_tie": 0.0203,
+    "spread_to_outer_when_clear": 0.0369,
+    "top_speed_when_open": 0.1404,
+    "overtake_early": 0.0683,
+    "best_of_blocked": 0.1028,
+    "commit_after_change": 0.0,
+    "keep_following_gap": 0.0043,
+    "avoid_edge_lanes": 0.1114
+  },
+  "best_system_prompt": "You drive ONE car on a 7-lane highway; your score is your AVERAGE SPEED (top speed 80 mph). You auto-drive as fast as the road right ahead allows. Follow these driving rules:\n- (Important) If you are blocked and neither side lane is genuinely better, ease off briefly and wait for a gap rather than forcing a bad lane change.\n- (Important) Your DEFAULT action is to ACCELERATE: whenever your lane is open or the car ahead is fast, accelerate and stay in your lane -- never just maintain, because maintaining wastes the speed you could be regaining.\n- (Important) Avoid the outermost lanes (1 and 7) when an inner lane is equally open.\n- (ALWAYS) A car ahead that is near top speed or far away does NOT block you -- you could not go faster anyway, so do not slow down, maintain, or change lanes for it; keep accelerating.\n- (ALWAYS) When the road far ahead in your lane is clear, accelerate all the way to top speed -- an empty lane is the fastest lane, so do not hold back.\n- (Also) Begin overtaking as soon as a slow car is close ahead; do not wait until you are right behind it, by which time the adjacent lane may have filled.\n- (Also) NEVER move into a lane that itself has a slow car close ahead -- that is not a real escape, it only trades one block for another.\n- (Also) Do not change into a lane where a fast car is close behind you; you would cut it off and lose speed.\n- (Important) If every lane has a slow car close ahead, move toward the lane whose nearest car is the fastest -- take the least-bad option rather than staying stuck behind the slowest.\nThink in one short sentence, then choose one action.",
+  "final_weight_contributions": {
+    "accelerate_when_clear": 0.637,
+    "fast_or_far_not_blocking": 1.2056,
+    "overtake_when_blocked": 0.9455,
+    "avoid_slow_close_lane": -1.2695,
+    "wait_if_boxed_in": -0.0394,
+    "rear_safety": -0.7239,
+    "ignore_rear_when_not_overtaking": -1.1617,
+    "prefer_centre_on_tie": -0.534,
+    "spread_to_outer_when_clear": -1.9498,
+    "top_speed_when_open": 1.4526,
+    "overtake_early": 0.296,
+    "best_of_blocked": 0.6291,
+    "commit_after_change": -0.329,
+    "keep_following_gap": -0.5254,
+    "avoid_edge_lanes": 1.3669
+  },
+  "final_order_contributions": {
+    "accelerate_when_clear": 1.1866,
+    "fast_or_far_not_blocking": -1.3362,
+    "overtake_when_blocked": -0.5353,
+    "avoid_slow_close_lane": 0.292,
+    "wait_if_boxed_in": 1.5574,
+    "rear_safety": -0.1578,
+    "ignore_rear_when_not_overtaking": 0.3933,
+    "prefer_centre_on_tie": -0.6006,
+    "spread_to_outer_when_clear": 0.2947,
+    "top_speed_when_open": -0.4094,
+    "overtake_early": -0.7111,
+    "best_of_blocked": 0.0621,
+    "commit_after_change": 1.4054,
+    "keep_following_gap": -1.1123,
+    "avoid_edge_lanes": -0.329
+  },
+  "action_fraction_trajectory": [
+    {
+      "maintain": 0.068,
+      "accelerate": 0.5922,
+      "decelerate": 0.1003,
+      "left": 0.0746,
+      "right": 0.165
+    },
+    {
+      "maintain": 0.0578,
+      "accelerate": 0.7686,
+      "decelerate": 0.0057,
+      "left": 0.0781,
+      "right": 0.0898
+    },
+    {
+      "maintain": 0.0165,
+      "accelerate": 0.574,
+      "decelerate": 0.3,
+      "left": 0.0329,
+      "right": 0.0766
+    },
+    {
+      "maintain": 0.0278,
+      "accelerate": 0.312,
+      "decelerate": 0.1943,
+      "left": 0.2407,
+      "right": 0.2251
+    },
+    {
+      "maintain": 0.0284,
+      "accelerate": 0.7201,
+      "decelerate": 0.0006,
+      "left": 0.1272,
+      "right": 0.1237
+    },
+    {
+      "maintain": 0.9323,
+      "accelerate": 0.003,
+      "decelerate": 0.0063,
+      "left": 0.0225,
+      "right": 0.0359
+    },
+    {
+      "maintain": 0.0009,
+      "accelerate": 0.844,
+      "decelerate": 0.0,
+      "left": 0.0769,
+      "right": 0.0781
+    },
+    {
+      "maintain": 0.0683,
+      "accelerate": 0.5216,
+      "decelerate": 0.0057,
+      "left": 0.215,
+      "right": 0.1895
+    },
+    {
+      "maintain": 0.0123,
+      "accelerate": 0.6299,
+      "decelerate": 0.0006,
+      "left": 0.1072,
+      "right": 0.25
+    },
+    {
+      "maintain": 0.0072,
+      "accelerate": 0.724,
+      "decelerate": 0.0015,
+      "left": 0.1246,
+      "right": 0.1428
+    },
+    {
+      "maintain": 0.0985,
+      "accelerate": 0.5036,
+      "decelerate": 0.006,
+      "left": 0.1623,
+      "right": 0.2296
+    },
+    {
+      "maintain": 0.0243,
+      "accelerate": 0.5743,
+      "decelerate": 0.0018,
+      "left": 0.1566,
+      "right": 0.2431
+    },
+    {
+      "maintain": 0.0934,
+      "accelerate": 0.6452,
+      "decelerate": 0.0021,
+      "left": 0.1015,
+      "right": 0.1578
+    },
+    {
+      "maintain": 0.0763,
+      "accelerate": 0.7668,
+      "decelerate": 0.0084,
+      "left": 0.0683,
+      "right": 0.0802
+    },
+    {
+      "maintain": 0.0991,
+      "accelerate": 0.5877,
+      "decelerate": 0.0263,
+      "left": 0.1012,
+      "right": 0.1856
+    },
+    {
+      "maintain": 0.026,
+      "accelerate": 0.5749,
+      "decelerate": 0.0048,
+      "left": 0.153,
+      "right": 0.2413
+    }
+  ],
+  "total_llm_calls": 40557,
+  "total_parse_fail": 84,
+  "wall_seconds": 27050,
+  "ceiling_ref": {
+    "all_time": 76.3,
+    "best_heuristic_H6": 76.4,
+    "hand_tuned_P4_24run": 76.5,
+    "real_DQN": 74.13
+  }
+}
